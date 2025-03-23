@@ -378,5 +378,3 @@ end
 # puts result.inspect  # Expected: [0, 1]
 `
 };
-
-export { mockQuestions };
