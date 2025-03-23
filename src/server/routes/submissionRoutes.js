@@ -42,17 +42,27 @@ router.post('/', async (req, res) => {
     newSubmission.status = 'Submitted';
     await newSubmission.save();
     
+    console.log(`Submission saved with ID: ${newSubmission._id}`);
+    
     // Get AI review asynchronously
     aiReviewService.getCodeReview(code, language)
       .then(async (review) => {
-        newSubmission.aiReview = review;
-        newSubmission.status = 'Evaluated';
-        await newSubmission.save();
+        console.log(`AI review received for submission ${newSubmission._id}`);
+        // Update the submission with the AI review
+        await Submission.findByIdAndUpdate(
+          newSubmission._id,
+          { 
+            aiReview: review,
+            status: 'Evaluated'
+          }
+        );
+        console.log(`Submission ${newSubmission._id} updated with AI review`);
       })
       .catch(err => console.error('Error getting AI review:', err));
     
     res.status(201).json(newSubmission);
   } catch (err) {
+    console.error('Error in submission route:', err);
     res.status(400).json({ message: err.message });
   }
 });
@@ -60,10 +70,18 @@ router.post('/', async (req, res) => {
 // Get submission by ID
 router.get('/:id', async (req, res) => {
   try {
+    console.log(`Fetching submission with ID: ${req.params.id}`);
     const submission = await Submission.findById(req.params.id);
-    if (!submission) return res.status(404).json({ message: 'Submission not found' });
+    
+    if (!submission) {
+      console.log(`Submission with ID ${req.params.id} not found`);
+      return res.status(404).json({ message: 'Submission not found' });
+    }
+    
+    console.log(`Submission found: ${submission.status}`);
     res.json(submission);
   } catch (err) {
+    console.error(`Error fetching submission ${req.params.id}:`, err);
     res.status(500).json({ message: err.message });
   }
 });

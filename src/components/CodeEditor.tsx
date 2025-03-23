@@ -4,7 +4,6 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { languages, codeTemplates } from '@/lib/mockData';
-import { submitCode } from '@/lib/api';
 import { toast } from '@/components/ui/use-toast';
 
 interface CodeEditorProps {
@@ -27,42 +26,35 @@ const CodeEditor = ({
   const [code, setCode] = useState<string>(codeTemplates[language] || '');
 
   useEffect(() => {
+    // Update code when language changes
     setCode(codeTemplates[language] || '');
-  }, [language]);
+    onChange(codeTemplates[language] || '');
+  }, [language, onChange]);
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setCode(e.target.value);
-    onChange(e.target.value);
+    const newCode = e.target.value;
+    setCode(newCode);
+    onChange(newCode);
   };
 
   const handleLanguageChange = (value: string) => {
     onLanguageChange(value);
   };
 
-  const handleSubmit = async () => {
-    // Call the original onSubmit handler
-    onSubmit();
+  const handleSubmit = () => {
+    console.log('Submitting code:', code.substring(0, 50) + '...');
     
-    // If we have a questionId, also submit to the backend
-    if (questionId) {
-      try {
-        const submission = await submitCode(questionId, code, language);
-        toast({
-          title: "Code submitted successfully",
-          description: "Your solution has been submitted for evaluation.",
-        });
-        
-        // Additional handling for the submission result if needed
-        console.log("Submission result:", submission);
-      } catch (error) {
-        console.error("Error submitting code:", error);
-        toast({
-          variant: "destructive",
-          title: "Submission failed",
-          description: "There was an error submitting your code. Please try again.",
-        });
-      }
+    if (!code.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Empty code",
+        description: "Please write some code before submitting.",
+      });
+      return;
     }
+    
+    // Call the onSubmit handler from parent component
+    onSubmit();
   };
 
   return (
@@ -93,6 +85,7 @@ const CodeEditor = ({
           onChange={handleCodeChange}
           className="w-full h-full p-4 font-mono text-sm resize-none focus:outline-none focus:ring-0 bg-secondary/30"
           spellCheck="false"
+          placeholder="Type your solution here..."
         />
       </div>
     </div>
