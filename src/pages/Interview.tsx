@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Question } from "@/lib/mockData";
-import { questions } from "@/lib/mockData";
+import { mockQuestions } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CodeEditor from "@/components/CodeEditor";
@@ -25,7 +26,9 @@ const Interview = () => {
 
   useEffect(() => {
     if (jobId) {
-      const foundQuestion = questions.find((q) => q.jobId === jobId);
+      // Find the question by jobId using mockQuestions object instead of 'questions' array
+      const questionId = `${jobId}`;
+      const foundQuestion = mockQuestions[questionId];
       if (foundQuestion) {
         setQuestion(foundQuestion);
       }
