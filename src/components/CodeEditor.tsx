@@ -4,6 +4,8 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { languages, codeTemplates } from '@/lib/mockData';
+import { submitCode } from '@/lib/api';
+import { toast } from '@/components/ui/use-toast';
 
 interface CodeEditorProps {
   language: string;
@@ -11,6 +13,7 @@ interface CodeEditorProps {
   onLanguageChange: (language: string) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
+  questionId?: string;
 }
 
 const CodeEditor = ({ 
@@ -18,7 +21,8 @@ const CodeEditor = ({
   onChange, 
   onLanguageChange, 
   onSubmit, 
-  isSubmitting 
+  isSubmitting,
+  questionId
 }: CodeEditorProps) => {
   const [code, setCode] = useState<string>(codeTemplates[language] || '');
 
@@ -33,6 +37,32 @@ const CodeEditor = ({
 
   const handleLanguageChange = (value: string) => {
     onLanguageChange(value);
+  };
+
+  const handleSubmit = async () => {
+    // Call the original onSubmit handler
+    onSubmit();
+    
+    // If we have a questionId, also submit to the backend
+    if (questionId) {
+      try {
+        const submission = await submitCode(questionId, code, language);
+        toast({
+          title: "Code submitted successfully",
+          description: "Your solution has been submitted for evaluation.",
+        });
+        
+        // Additional handling for the submission result if needed
+        console.log("Submission result:", submission);
+      } catch (error) {
+        console.error("Error submitting code:", error);
+        toast({
+          variant: "destructive",
+          title: "Submission failed",
+          description: "There was an error submitting your code. Please try again.",
+        });
+      }
+    }
   };
 
   return (
@@ -52,7 +82,7 @@ const CodeEditor = ({
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={onSubmit} disabled={isSubmitting} className="gap-2">
+        <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2">
           {isSubmitting ? 'Submitting...' : 'Submit Solution'} 
           {isSubmitting ? null : <Check size={16} />}
         </Button>
